@@ -1,3 +1,13 @@
+____/\\\\\\\\\______/\\\________/\\\__/\\\______________/\\\\\\\\\\\\\\\_____/\\\\\\\\\\\_______/\\\____        
+ __/\\\///////\\\___\/\\\_______\/\\\_\/\\\_____________\/\\\///////////____/\\\/////////\\\___/\\\\\\\__       
+  _\/\\\_____\/\\\___\/\\\_______\/\\\_\/\\\_____________\/\\\______________\//\\\______\///___/\\\\\\\\\_      
+   _\/\\\\\\\\\\\/____\/\\\_______\/\\\_\/\\\_____________\/\\\\\\\\\\\_______\////\\\_________\//\\\\\\\__     
+    _\/\\\//////\\\____\/\\\_______\/\\\_\/\\\_____________\/\\\///////___________\////\\\_______\//\\\\\___    
+     _\/\\\____\//\\\___\/\\\_______\/\\\_\/\\\_____________\/\\\_____________________\////\\\_____\//\\\____   
+      _\/\\\_____\//\\\__\//\\\______/\\\__\/\\\_____________\/\\\______________/\\\______\//\\\_____\///_____  
+       _\/\\\______\//\\\__\///\\\\\\\\\/___\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\\\\_\///\\\\\\\\\\\/_______/\\\____ 
+        _\///________\///_____\/////////_____\///////////////__\///////////////____\///////////________\///_____
+
 The octagonal playing area consists of a 15 by 15 square board from which a triangle of 5 squares 
 in each corner has been removed. The Thudstone is placed on the centre square of the board, where 
 it remains for the entire game and may not be moved onto or through. The eight trolls are placed 
@@ -36,6 +46,7 @@ they may shove the endmost troll in the direction continuing the line, up to as 
 are trolls in the line. As in a normal move, the troll may not land on an occupied square, and any 
 (all) dwarfs in the eight squares adjacent to its final position may immediately be captured. Trolls 
 may only make a shove if by doing so they capture at least one dwarf.
+
 The battle is over when both players agree that no more captures can be made by continuing to play, 
 or when one player has no more valid moves to make. At this point the players count score: the dwarfs 
 score 1 point for each surviving dwarf, and the trolls score 4 for each remaining troll, with the 

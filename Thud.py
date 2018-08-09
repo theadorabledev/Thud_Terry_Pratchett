@@ -4,8 +4,15 @@ from os import system, name
 from copy import deepcopy
 from pprint import pprint
 from colorama import Fore, Style, Back, init
+
 dwarfColor = Fore.BLUE
 trollColor = Fore.RED
+edgeColor = Back.WHITE
+edgeFillColor = Fore.BLACK
+edgeFill = edgeFillColor + " X "
+rightPadding = " " * 20
+borderColor = Back.WHITE
+borderTextColor = Fore.RED
 class Piece:
     """ Class dealing with default methods across all pieces. """
     def __init__(self, owner, position):
@@ -205,7 +212,6 @@ class Player:
         if self.side == "Dwarf":
             self.pieces = (
             [
-                Dwarf(self,"F10"),
                 Dwarf(self, "F1"), Dwarf(self, "G1"), Dwarf(self, "I1"), Dwarf(self, "J1"),
                 Dwarf(self, "F15"), Dwarf(self, "G15"), Dwarf(self, "I15"), Dwarf(self, "J15"),
                 Dwarf(self, "A6"), Dwarf(self, "A7"), Dwarf(self, "A9"), Dwarf(self, "A10"),
@@ -243,11 +249,11 @@ class Board:
 
     def printBoard(self):
         """ Prints out the chess board. """
-        for i in range(len(self.board)-1):
-            
-            print colorRow(self.board[i],i+1,self)#[15,14,13,12,11,10,9,8,7,6,5,4,3,2,1][i]
-            #raw_input(i+1)
-        print "".join(self.board[15]).encode("utf-8")
+        print "\n"
+        print rightPadding + borderColor + borderTextColor + "[  ]" + ("[ ]" * 16) + Style.RESET_ALL
+        for i in range(len(self.board)-1):   
+            print rightPadding + colorRow(self.board[i],i+1,self)
+        print rightPadding  + borderColor + borderTextColor + "".join(self.board[15]).encode("utf-8") + "[ ]" + Style.RESET_ALL
     def NoTheWorldMustBePeopled(self):#much ado about nothing -benedick
         """ Updates the player positions on the board. """
         self.boardDict = {}
@@ -315,32 +321,34 @@ def colorRow(row, rowNum, board):
     """ Returns a colored version of the inputted row. """
     reversedRowNum=[15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1][rowNum-1]
     colorRowList = []
-    colorRowList.append(row[0])
+    colorRowList.append(borderColor + borderTextColor + row[0] + Style.RESET_ALL)
     for i in range(1, len(row), 2):
         letterPos="ABCDEFGHIJKLMNO"[i-1]
         #print letterPos+str(reversedRowNum)
         try:
             if rowNum % 2 == 0:
                 if "ABCDEFGHIJKLMNO"[i-1]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.WHITE+row[i]+Style.RESET_ALL)
-                else:
-                    colorRowList.append(Back.GREEN+row[i]+Style.RESET_ALL)
-                if "ABCDEFGHIJKLMNO"[i]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.BLACK+row[i+1]+Style.RESET_ALL)
-                else:
-                    colorRowList.append(Back.GREEN+row[i+1]+Style.RESET_ALL)
-            else:
-                if "ABCDEFGHIJKLMNO"[i-1]+str(reversedRowNum) not in board.edges:
                     colorRowList.append(Back.BLACK+row[i]+Style.RESET_ALL)
                 else:
-                    colorRowList.append(Back.GREEN+row[i]+Style.RESET_ALL)
+                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
                 if "ABCDEFGHIJKLMNO"[i]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.WHITE+row[i+1]+Style.RESET_ALL)  
+                    colorRowList.append(Back.WHITE+row[i+1]+Style.RESET_ALL)
                 else:
-                    colorRowList.append(Back.GREEN+row[i+1]+Style.RESET_ALL)  
+                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
+            else:
+                if "ABCDEFGHIJKLMNO"[i-1]+str(reversedRowNum) not in board.edges:
+                    colorRowList.append(Back.WHITE+row[i]+Style.RESET_ALL)
+                else:
+                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
+                if "ABCDEFGHIJKLMNO"[i]+str(reversedRowNum) not in board.edges:
+                    colorRowList.append(Back.BLACK+row[i+1]+Style.RESET_ALL)  
+                else:
+                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)  
         except IndexError:
             pass
 
+    colorRowList.append(borderColor + borderTextColor + "[ ]" + Style.RESET_ALL)
+   
     return "".join(colorRowList)
 
 def clear():
@@ -372,8 +380,16 @@ def printRules():
     clear()
     f = open('rules.txt', 'r')
     for line in f:
-        print line.rstrip()
-    raw_input("\n\nPress enter to start the game!\n->")
+        colorLine = []
+        stripLine = line.rstrip("\n")
+        for i in stripLine:
+            if i == "_":
+                colorLine.append(Fore.BLUE+i+Style.RESET_ALL)
+            else: 
+                colorLine.append(Fore.RED+i+Style.RESET_ALL)
+        
+        print "".join(colorLine)
+    raw_input("\n\nPress enter to start/continue the game!\n->")
 def main():
     """ The main program. """
     if name == 'nt':
