@@ -129,12 +129,68 @@ class Troll(Piece):
             return False
         if (abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0])) <= 1) and (abs(int(self.position[1:])-int(position[1:])) <= 1):                    
             return True    
+        else:                
+            surroundingDwarfs=[]
+            for iterPosition in [letter + str(number) for number in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] for letter in "ABCDEFGHIJKLMNO"] :         
+                if (abs("ABCDEFGHIJKLMNO".index(position[0])-"ABCDEFGHIJKLMNO".index(iterPosition[0])) <= 1) and (abs(int(position[1:])-int(iterPosition[1:])) <= 1) and iterPosition in board.boardDict.keys() and board.boardDict[iterPosition].name == "Dwarf":
+                    surroundingDwarfs.append(iterPosition)
+            if len(surroundingDwarfs)>0:
+                increment=1
+                if position[1:] == self.position[1:]:#horizontal
+                    if "ABCDEFGHIJKLMNO".index(position[0]) < "ABCDEFGHIJKLMNO".index(self.position[0]):
+                        increment = -1                
+                    for i in range("ABCDEFGHIJKLMNO".index(self.position[0]), "ABCDEFGHIJKLMNO".index(position[0]), increment):
+                        if board.getCoordinateSign("ABCDEFGHIJKLMNO"[i]+position[1:]) != "   ":
+                            if ("ABCDEFGHIJKLMNO"[i]+position[1:]) != self.position and ("ABCDEFGHIJKLMNO"[i]+position[1:]) != position:
+                                return False            
+                    dist=abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0]))
+                    for i in range(dist):
+                        try:
+                            if "ABCDEFGHIJKLMNO"["ABCDEFGHIJKLMNO".index(self.position[0])-(increment*i)]+str(self.position[1:]) not in board.boardDict.keys():
+                                return False
+                        except IndexError:
+                            return False
+                    return True   
+                if position[0] == self.position[0]:#vertical
+                    if int(position[1:]) < int(self.position[1:]):
+                        increment = -1
+                    for i in range(int(position[1:]), int(self.position[1:]), increment):
+                        if board.getCoordinateSign(position[0]+str(i)) != "   ":
+                            return False 
+                    dist=abs(int(self.position[1:])-int(position[1:]))
+                    for i in range(dist):
+                        try:
+                            if position[0]+str(int(self.position[1:])-(increment*i)) not in board.boardDict.keys():
+                                return False
+                        except IndexError:
+                            return False
+                    
+                    return True            
+                try:
+                    direction = [1, 1]#increment in [h, v] horizontal, vertical
+                    direction[0] = -("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0]))/abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0]))
+                    direction[1] = -(int(self.position[1:])-int(position[1:]))/abs(int(self.position[1:])-int(position[1:]))
+                    reverseDirection=[-direction[0], -direction[1]]
+                    dist=abs(int(self.position[1:])-int(position[1:]))
+                    if abs(int(self.position[1:])-int(position[1:])) == abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0])):
+                        for i in range(1, abs(int(self.position[1:])-int(position[1:]))):
+                            if board.getCoordinateSign("ABCDEFGHIJKLMNO"["ABCDEFGHIJKLMNO".index(self.position[0])+(i*direction[0])]+str(int(self.position[1:])+(i*direction[1]))) != "   ":
+                                return False
+                        for i in range(dist):
+                            if "ABCDEFGHIJKLMNO"["ABCDEFGHIJKLMNO".index(self.position[0])+(reverseDirection[0]*i)]+str(int(self.position[1:])+(reverseDirection[1]*i)) not in board.boardDict.keys():
+                                return False
+                        return True
+                    return False
+                except ZeroDivisionError:
+                    return False            
+             
+                #return True            
         return False
     def movePiece(self, position, board):
         " Moves the piece."
         self.position = position
         for iterPosition in [letter + str(number) for number in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] for letter in "ABCDEFGHIJKLMNO"] :         
-            if (abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(iterPosition[0])) <= 1) and (abs(int(self.position[1:])-int(iterPosition[1])) <= 1) and iterPosition in board.boardDict.keys() and board.boardDict[iterPosition].name == "Dwarf":                    
+            if (abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(iterPosition[0])) <= 1) and (abs(int(self.position[1:])-int(iterPosition[1:])) <= 1) and iterPosition in board.boardDict.keys() and board.boardDict[iterPosition].name == "Dwarf":                    
                 self.owner.points += 1
                 self.owner.otherPlayer.pieces.remove(board.boardDict[iterPosition])
         board.NoTheWorldMustBePeopled()    
@@ -149,6 +205,7 @@ class Player:
         if self.side == "Dwarf":
             self.pieces = (
             [
+                Dwarf(self,"F10"),
                 Dwarf(self, "F1"), Dwarf(self, "G1"), Dwarf(self, "I1"), Dwarf(self, "J1"),
                 Dwarf(self, "F15"), Dwarf(self, "G15"), Dwarf(self, "I15"), Dwarf(self, "J15"),
                 Dwarf(self, "A6"), Dwarf(self, "A7"), Dwarf(self, "A9"), Dwarf(self, "A10"),
@@ -236,6 +293,8 @@ class Board:
                         print "\n"+player.side +"'s Turn!"
                         
                         piecePosition = raw_input("Please choose one of your pieces(ex:A2)\n->").rstrip("\r").upper()
+                        if self.boardDict[piecePosition].name != player.side:
+                            raise ValueError
                         correctPiece = raw_input("You have chosen your "+self.boardDict[piecePosition].name+" at "+piecePosition+". Is this correct(y/n)?\n->")
                         if correctPiece[0].upper() == "Y":
                             newPiecePosition = raw_input("Where would you like to move it?\n->").rstrip("\r").upper()
@@ -246,7 +305,7 @@ class Board:
                                 raise ValueError
                         else:
                             raise ValueError
-                    except (ValueError, KeyError):
+                    except (ValueError, KeyError,IndexError):
                         pass
                     else:
                         break
@@ -313,8 +372,8 @@ def printRules():
     clear()
     f = open('rules.txt', 'r')
     for line in f:
-        print line
-    raw_input("\n\nPress enter to start the game!\m->")
+        print line.rstrip()
+    raw_input("\n\nPress enter to start the game!\n->")
 def main():
     """ The main program. """
     if name == 'nt':
