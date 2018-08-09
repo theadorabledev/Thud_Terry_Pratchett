@@ -218,29 +218,30 @@ class Board:
     def takeTurns(self):
         """ 
         Alternate between the players and moves.
-        
-        Accepts input from human players and runs the chess AI for the AI players. 
         """
         while self.gameWon is False:
             for player in self.players:
                 while self.gameWon is False:
                     try:
                         clear()
+                        if len(player.otherPlayer.pieces) == 0:
+                            self.gameWon=="True"
+                            print " You have won!"
+                            raw_input("Press enter to continue->")
+                            break
                         self.printBoard()
                         print "\nCaptured Pieces:" 
                         for p in self.players:
                             print p.side+" Points  =  "+str(p.points)
                         print "\n"+player.side +"'s Turn!"
-
+                        
                         piecePosition = raw_input("Please choose one of your pieces(ex:A2)\n->").rstrip("\r").upper()
-
                         correctPiece = raw_input("You have chosen your "+self.boardDict[piecePosition].name+" at "+piecePosition+". Is this correct(y/n)?\n->")
                         if correctPiece[0].upper() == "Y":
                             newPiecePosition = raw_input("Where would you like to move it?\n->").rstrip("\r").upper()
                             correctPieceMove = raw_input("You have chosen to move your "+self.boardDict[piecePosition].name+" from "+piecePosition+" to "+newPiecePosition+". Is this correct(y/n)?\n->")
                             if correctPieceMove[0].upper() == "Y" and self.boardDict[piecePosition].isValidMove(newPiecePosition, self.getCoordinateSign(newPiecePosition), self):
                                 self.boardDict[piecePosition].movePiece(newPiecePosition, self)
-                                #self.tryTurn(player, piecePosition, newPiecePosition, True, False, True, 1)
                             else:
                                 raise ValueError
                         else:
@@ -299,17 +300,26 @@ def printBanner():
         stripLine = line.rstrip("\n")
         for i in stripLine:
             if i == "_":
-                colorLine.append(Fore.BLACK+i+Style.RESET_ALL)
+                colorLine.append(Fore.BLUE+i+Style.RESET_ALL)
             else: 
-                colorLine.append(Fore.WHITE+i+Style.RESET_ALL)
+                colorLine.append(Fore.RED+i+Style.RESET_ALL)
         
         print "".join(colorLine)
+    i = raw_input("Press enter to start or \"?\" to view the rules!\n->")
+    if "?" in i:
+        printRules()
     
+def printRules():
+    clear()
+    f = open('rules.txt', 'r')
+    for line in f:
+        print line
+    raw_input("\n\nPress enter to start the game!\m->")
 def main():
     """ The main program. """
     if name == 'nt':
         init()
-#    printBanner()
+    printBanner()
     board = Board()
     board.takeTurns()
 if __name__ == "__main__":
