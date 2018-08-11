@@ -1,15 +1,5 @@
 from Tkinter import *
 from os import system, name
-from colorama import Fore, Style, Back, init
-
-dwarfColor = Fore.BLUE
-trollColor = Fore.RED
-edgeColor = Back.WHITE
-edgeFillColor = Fore.BLACK
-edgeFill = edgeFillColor + " X "
-rightPadding = " " * 20
-borderColor = Back.WHITE
-borderTextColor = Fore.RED
 class Piece:
     """ Class dealing with default methods across all pieces. """
     def __init__(self, owner, position):
@@ -130,7 +120,7 @@ class Troll(Piece):
         self.points = 4
     def isValidMove(self, position, board):           
         """ Checks if the inputted position is a valid move. """        
-        if position in board.boardDict:
+        if position in board.boardDict or position in board.edges:
             return False
         if (abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0])) <= 1) and (abs(int(self.position[1:])-int(position[1:])) <= 1):                    
             return True    
@@ -277,21 +267,27 @@ class Board:
         self.board[15-int(spot[1:])][self.board[15].index("["+str(spot[0]).upper()+"]")] = sign
 
 
-#class pieceButton(Button)
 
 class Application(Frame):
     def pieceClicked(self,coord):
         if coord in self.board.boardDict.keys() and self.board.boardDict[coord].name == self.board.currentPlayer:
-            if self.buttons[coord]["bg"] != "green":
+            if self.firstClick and self.buttons[coord]["bg"] != "green":
                 self.buttons[coord]["relief"] = "sunken"
                 self.buttons[coord]["bg"] = "green"
                 self.firstClick = False
                 self.selectedPiece = coord
+                if self.showMoves:
+                    for iterPosition in [letter + str(number) for number in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15] for letter in "ABCDEFGHIJKLMNO"]:         
+                        if self.board.boardDict[self.selectedPiece].isValidMove(iterPosition, self.board):
+                            self.buttons[iterPosition]["bg"] = "yellow"
             else:
                 self.buttons[coord]["relief"] = "raised"
                 self.buttons[coord]["bg"] = self.buttonsLastColor[coord]
                 self.firstClick = True
                 self.selectedPiece = ""
+                for position in self.buttons:
+                    if self.buttons[position]["bg"] == "yellow":
+                        self.buttons[position]["bg"] = self.buttonsLastColor[position]
         if not self.firstClick:
             if self.board.boardDict[self.selectedPiece].isValidMove(coord, self.board):
                 self.board.boardDict[self.selectedPiece].movePiece(coord, self.board)
@@ -299,20 +295,26 @@ class Application(Frame):
                     self.board.currentPlayer = "Troll"
                 else:
                     self.board.currentPlayer = "Dwarf"
-
-                self.createWidgets()                                      
+                self.createWidgets()  
+                self.firstClick = True
             
             
     def createWidgets(self):        
         self.buttons = {}
         self.buttonsLastColor = {}
         self.board.NoTheWorldMustBePeopled()
+        turnDisplayText= "   " + self.board.currentPlayer + "'s turn!\n"
+        for p in self.board.players:
+            turnDisplayText += p.side+"'s Points  =  "+str(p.points)+"\n"    
+        self.playerTurnDisplay=Label(self, text= turnDisplayText, font="TkFixedFont")
+        self.playerTurnDisplay["borderwidth"] = 10
+        self.playerTurnDisplay.grid(row=0, column=2, columnspan=14, sticky=N+E+S+W)        
         for i in range(len(self.board.board)-1):
-            b = Button(self, text=self.board.board[i][0],font='TkFixedFont')
-            b.grid(row=i, column=1)             
+            b = Button(self, text=self.board.board[i][0], font='TkFixedFont', borderwidth=4, relief="groove",)
+            b.grid(row=i+1, column=1)             
             for j in range(1, len(self.board.board[i])):
                 coord = "ABCDEFGHIJKLMNO"[j-1]+str(int(self.board.board[i][0][1:3]))
-                b = Button(self, text= self.board.getCoordinateSign(coord) ,font='TkFixedFont', command=lambda coord=coord:self.pieceClicked(coord))
+                b = Button(self, text= self.board.getCoordinateSign(coord) ,font='TkFixedFont', borderwidth=4, relief="groove", command=lambda coord=coord:self.pieceClicked(coord))
                 #b.bind("<Enter>", self.pieceClicked)
                 if coord in self.board.boardDict.keys() and self.board.boardDict[coord].name == "Dwarf":
                     b["fg"] = "red"
@@ -324,26 +326,28 @@ class Application(Frame):
                 if self.board.getCoordinateSign(coord) == " X ":
                     b["bg"] = "red"
                     b["fg"] = "black"
-                b.grid(row=i, column=j+1) 
+                b.grid(row=i+1, column=j+1) 
                 self.buttons[coord] = b
                 self.buttonsLastColor[coord] = b["bg"]
         for i in range(len(self.board.board[-1])):
-            b = Button(self, text=self.board.board[-1][i],font='TkFixedFont')
-            b.grid(row=15, column=i+1)     
-        self.playerTurnDisplay=Label(self, text= "Dwarf's turn!", font="TkFixedFont")
-        self.playerTurnDisplay.pack()#grid(row=16)
-        self.playerTurnDisplay.place(relx=.5, rely=1, anchor="center")
+            b = Button(self, text=self.board.board[-1][i], font='TkFixedFont', borderwidth=4, relief="groove",)
+            b.grid(row=16, column=i+1)     
 
-    def takeTurns(self):
-        pass
+ 
+    def swapShowMoves(self):
+        self.showMoves = not self.showMoves
     def __init__(self, master=None):
         Frame.__init__(self, master)
         self.pack()
         self.buttons={}
         self.board=Board()
         self.createWidgets()
+        self.showMoves=False
+        self.showMovesButton = Checkbutton(self,text="Show avilable moves on piece selection.", borderwidth=4 ,relief="sunken",command=self.swapShowMoves )
+        self.showMovesButton.grid(row=17, column=2, columnspan=14, sticky=N+E+S+W) 
         self.firstClick=True
         self.selectedPiece=""
+        
 
 
 #board = Board()
@@ -351,7 +355,7 @@ root = Tk()
 root.title= "Thud!"
         
 #board.NoTheWorldMustBePeopled()
-root.geometry="1600x1200"
+root.geometry="2000x1500"
 app = Application(master=root)
 app.mainloop()
 root.destroy()

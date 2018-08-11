@@ -129,7 +129,7 @@ class Troll(Piece):
         self.points = 4
     def isValidMove(self, position, board):           
         """ Checks if the inputted position is a valid move. """        
-        if position in board.boardDict:
+        if position in board.boardDict or position in board.edges:
             return False
         if (abs("ABCDEFGHIJKLMNO".index(self.position[0])-"ABCDEFGHIJKLMNO".index(position[0])) <= 1) and (abs(int(self.position[1:])-int(position[1:])) <= 1):                    
             return True    
