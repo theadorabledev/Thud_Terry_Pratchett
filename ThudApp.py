@@ -1,3 +1,4 @@
+from Tkinter import *
 from os import system, name
 from colorama import Fore, Style, Back, init
 
@@ -19,7 +20,7 @@ class Dwarf(Piece):
     """ Class that extends piece that deals with the Dwarf's capabilities. """
     def __init__(self, owner, position):
         Piece.__init__(self, owner, position)
-        self.symbol = dwarfColor+" D "
+        self.symbol = " D "
         self.name = "Dwarf"
         self.points = 1
     def isValidMove(self, position, board):           
@@ -124,7 +125,7 @@ class Troll(Piece):
     """ Class that extends piece that deals with the Troll's capabilities. """
     def __init__(self, owner, position):
         Piece.__init__(self, owner, position)
-        self.symbol = trollColor+" T "
+        self.symbol = " T "
         self.name = "Troll"
         self.points = 4
     def isValidMove(self, position, board):           
@@ -225,6 +226,8 @@ class Player:
     def loadOtherPlayer(self, board):
         " Initializes the player's other player instance . "
         self.otherPlayer = [p for p in board.players if p != self][0]  
+
+
 class Board:    
     """ The board. """
     def __init__(self):
@@ -234,28 +237,22 @@ class Board:
         for player in self.players:
             player.loadOtherPlayer(self)
         self.boardDict = {}
-        self.NoTheWorldMustBePeopled()
         self.depth = 3
         self.count = 0
+        self.currentPlayer = "Dwarf"
         self.edges = (
             ["ABCDE"[char]+str([11, 12, 13, 14, 15][num]) for char in range(len("ABCDE")) for num in range(char, len([1, 2, 3, 4, 5]))]+
             ["ABCDE"[char]+str([5, 4, 3, 2, 1][num]) for char in range(len("ABCDE")) for num in range(char, len([1, 2, 3, 4, 5]))]+
             ["ONMLK"[char]+str([5, 4, 3, 2, 1][num]) for char in range(len("ABCDE")) for num in range(char, len([1, 2, 3, 4, 5]))]+
             ["ONMLK"[char]+str([11, 12, 13, 14, 15][num]) for char in range(len("ABCDE")) for num in range(char, len([1, 2, 3, 4, 5]))]+["H8"]
         
-        )    
-
-    def printBoard(self):
-        """ Prints out the chess board. """
-        print "\n"
-        print rightPadding + borderColor + borderTextColor + "[  ]" + ("[ ]" * 16) + Style.RESET_ALL
-        for i in range(len(self.board)-1):   
-            print rightPadding + colorRow(self.board[i], i+1, self)
-        print rightPadding  + borderColor + borderTextColor + "".join(self.board[15]).encode("utf-8") + "[ ]" + Style.RESET_ALL
+        )   
+        self.NoTheWorldMustBePeopled()
     def NoTheWorldMustBePeopled(self):#much ado about nothing -benedick
         """ Updates the player positions on the board. """
         self.boardDict = {}
         self.board = []
+        self.boardGraphic=""
         for i in range(15, 0, -1):
             if i < 10:
                 row = ["["+str(i)+" ]"]
@@ -267,7 +264,11 @@ class Board:
         for player in self.players:
             for piece in player.pieces:
                 self.changeCoordinateSign(piece.position, piece.symbol)
-                self.boardDict[piece.position] = piece
+                self.boardDict[piece.position] = piece        
+        
+        #app.createWidgets()
+        for pos in self.edges:
+            self.changeCoordinateSign(pos, " X ")
     def getCoordinateSign(self, spot):
         """ Gets the coordinate sign of the inputted spot. """
         return self.board[15-int(spot[1:])][self.board[15].index("["+str(spot[0]).upper()+"]")]
@@ -275,131 +276,82 @@ class Board:
         """ Change the coordinate sign of the inputted spot. """
         self.board[15-int(spot[1:])][self.board[15].index("["+str(spot[0]).upper()+"]")] = sign
 
-    def takeTurns(self):
-        """ 
-        Alternate between the players and moves.
-        """
-        while self.gameWon is False:
-            for player in self.players:
-                while self.gameWon is False:
-                    try:
-                        clear()
-                        if len(player.otherPlayer.pieces) == 0:
-                            self.gameWon = True
-                            print " You have won!"
-                            raw_input("Press enter to continue->")
-                            break
-                        self.printBoard()
-                        print "\nCaptured Pieces:" 
-                        for p in self.players:
-                            print p.side+" Points  =  "+str(p.points)
-                        print "\n"+player.side +"'s Turn!"
-                        
-                        piecePosition = raw_input("Please choose one of your pieces(ex:A2)\n->").rstrip("\r").upper()
-                        if self.boardDict[piecePosition].name != player.side:
-                            raise ValueError
-                        correctPiece = raw_input("You have chosen your "+self.boardDict[piecePosition].name+" at "+piecePosition+". Is this correct(y/n)?\n->")
-                        if correctPiece[0].upper() == "Y":
-                            newPiecePosition = raw_input("Where would you like to move it?\n->").rstrip("\r").upper()
-                            correctPieceMove = raw_input("You have chosen to move your "+self.boardDict[piecePosition].name+" from "+piecePosition+" to "+newPiecePosition+". Is this correct(y/n)?\n->")
-                            if correctPieceMove[0].upper() == "Y" and self.boardDict[piecePosition].isValidMove(newPiecePosition, self):
-                                self.boardDict[piecePosition].movePiece(newPiecePosition, self)
-                            else:
-                                raise ValueError
-                        else:
-                            raise ValueError
-                    except (ValueError, KeyError, IndexError):
-                        pass
-                    else:
-                        break
-                            
 
-def colorRow(row, rowNum, board):
-    """ Returns a colored version of the inputted row. """
-    reversedRowNum = [15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1][rowNum-1]
-    colorRowList = []
-    colorRowList.append(borderColor + borderTextColor + row[0] + Style.RESET_ALL)
-    for i in range(1, len(row), 2):
-        try:
-            if rowNum % 2 == 0:
-                if "ABCDEFGHIJKLMNO"[i-1]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.BLACK+row[i]+Style.RESET_ALL)
-                else:
-                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
-                if "ABCDEFGHIJKLMNO"[i]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.WHITE+row[i+1]+Style.RESET_ALL)
-                else:
-                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
+#class pieceButton(Button)
+
+class Application(Frame):
+    def pieceClicked(self,coord):
+        if coord in self.board.boardDict.keys() and self.board.boardDict[coord].name == self.board.currentPlayer:
+            if self.buttons[coord]["bg"] != "green":
+                self.buttons[coord]["relief"] = "sunken"
+                self.buttons[coord]["bg"] = "green"
+                self.firstClick = False
+                self.selectedPiece = coord
             else:
-                if "ABCDEFGHIJKLMNO"[i-1]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.WHITE+row[i]+Style.RESET_ALL)
+                self.buttons[coord]["relief"] = "raised"
+                self.buttons[coord]["bg"] = self.buttonsLastColor[coord]
+                self.firstClick = True
+                self.selectedPiece = ""
+        if not self.firstClick:
+            if self.board.boardDict[self.selectedPiece].isValidMove(coord, self.board):
+                self.board.boardDict[self.selectedPiece].movePiece(coord, self.board)
+                if self.board.currentPlayer == "Dwarf":
+                    self.board.currentPlayer = "Troll"
                 else:
-                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)
-                if "ABCDEFGHIJKLMNO"[i]+str(reversedRowNum) not in board.edges:
-                    colorRowList.append(Back.BLACK+row[i+1]+Style.RESET_ALL)  
-                else:
-                    colorRowList.append(edgeColor+edgeFill+Style.RESET_ALL)  
-        except IndexError:
-            pass
+                    self.board.currentPlayer = "Dwarf"
 
-    colorRowList.append(borderColor + borderTextColor + "[ ]" + Style.RESET_ALL)
-   
-    return "".join(colorRowList)
+                self.createWidgets()                                      
+            
+            
+    def createWidgets(self):        
+        self.buttons = {}
+        self.buttonsLastColor = {}
+        self.board.NoTheWorldMustBePeopled()
+        for i in range(len(self.board.board)-1):
+            b = Button(self, text=self.board.board[i][0],font='TkFixedFont')
+            b.grid(row=i, column=1)             
+            for j in range(1, len(self.board.board[i])):
+                coord = "ABCDEFGHIJKLMNO"[j-1]+str(int(self.board.board[i][0][1:3]))
+                b = Button(self, text= self.board.getCoordinateSign(coord) ,font='TkFixedFont', command=lambda coord=coord:self.pieceClicked(coord))
+                #b.bind("<Enter>", self.pieceClicked)
+                if coord in self.board.boardDict.keys() and self.board.boardDict[coord].name == "Dwarf":
+                    b["fg"] = "red"
+                if coord in self.board.boardDict.keys() and self.board.boardDict[coord].name == "Troll":
+                    b["fg"] = "blue"
+                blackCheckers=["ABCDEFGHIJKLMNO".index(coord[0]) % 2 != 0 and int(coord[1:]) % 2 == 0, "ABCDEFGHIJKLMNO".index(coord[0]) % 2 == 0 and int(coord[1:]) % 2 != 0]
+                if any(blackCheckers) and not all(blackCheckers):
+                    b["bg"] = "black"
+                if self.board.getCoordinateSign(coord) == " X ":
+                    b["bg"] = "red"
+                    b["fg"] = "black"
+                b.grid(row=i, column=j+1) 
+                self.buttons[coord] = b
+                self.buttonsLastColor[coord] = b["bg"]
+        for i in range(len(self.board.board[-1])):
+            b = Button(self, text=self.board.board[-1][i],font='TkFixedFont')
+            b.grid(row=15, column=i+1)     
+        self.playerTurnDisplay=Label(self, text= "Dwarf's turn!", font="TkFixedFont")
+        self.playerTurnDisplay.pack()#grid(row=16)
+        self.playerTurnDisplay.place(relx=.5, rely=1, anchor="center")
 
-def clear():
-    """ Clears the screen. """
-    if name == 'nt':
-        _ = system('cls')
-    else:
-        _ = system('clear')
-      
-      
-def printBanner():
-    """ Prints the banner, a 3D version of the word chess. """
-    f = open('banner.txt', 'r')
-    for line in f:
-        colorLine = []
-        stripLine = line.rstrip("\n")
-        for i in stripLine:
-            if i == "_":
-                colorLine.append(Fore.BLUE+i+Style.RESET_ALL)
-            else: 
-                colorLine.append(Fore.RED+i+Style.RESET_ALL)
-        
-        print "".join(colorLine)
-    i = raw_input("Press enter to start or \"?\" to view the rules!\n->")
-    if "?" in i:
-        printRules()
-    
-def printRules():
-    """ Prints the rules of the game. """
-    clear()
-    f = open('rules.txt', 'r')
-    for line in f:
-        colorLine = []
-        stripLine = line.rstrip("\n")
-        for i in stripLine:
-            if i == "_":
-                colorLine.append(Fore.BLUE+i+Style.RESET_ALL)
-            else: 
-                colorLine.append(Fore.RED+i+Style.RESET_ALL)
-        
-        print "".join(colorLine)
-    raw_input("\n\nPress enter to start/continue the game!\n->")
-def main():
-    """ The main program. """
-    if name == 'nt':
-        init()
-    printBanner()
-    board = Board()
-    board.takeTurns()
-if __name__ == "__main__":
-        
-    #sides=["TT","/\\","\/","||","()","!!","<>","><","\'\'"]  
-    #mids=["v","b","!","#","^",".","_","-","|","?"]
-    #for i in [s[0]+m+s[1] for m in mids for s in sides]:
-    #    clear()
-    #    raw_input(i)
+    def takeTurns(self):
+        pass
+    def __init__(self, master=None):
+        Frame.__init__(self, master)
+        self.pack()
+        self.buttons={}
+        self.board=Board()
+        self.createWidgets()
+        self.firstClick=True
+        self.selectedPiece=""
 
-    
-    main()
+
+#board = Board()
+root = Tk()
+root.title= "Thud!"
+        
+#board.NoTheWorldMustBePeopled()
+root.geometry="1600x1200"
+app = Application(master=root)
+app.mainloop()
+root.destroy()
